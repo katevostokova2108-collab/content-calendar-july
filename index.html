@@ -330,6 +330,11 @@
           <button id="btnResetPlan">Reset plan</button>
           <button id="btnResetPalette">Reset palette</button>
           <button id="btnClear">Clear calendar</button>
+          <button id="btnDownload">Download backup</button>
+          <label id="btnLoadLabel" style="display:inline-block;cursor:pointer;">
+            <span style="font:inherit;font-size:12px;padding:7px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--text);">Load backup</span>
+            <input type="file" id="btnLoad" accept=".json" style="display:none" />
+          </label>
           <button id="btnExport" class="primary">Copy plan</button>
         </div>
       </header>
@@ -356,8 +361,8 @@
   <script>
     const YEAR = 2026;
     const MONTH = 6;
-    const PLAN_KEY = 'content-calendar-july-2026-plan-v3';
-    const PALETTE_KEY = 'content-calendar-july-2026-palette-v2';
+    const PLAN_KEY = 'content-calendar-july-2026-plan-v4';
+    const PALETTE_KEY = 'content-calendar-july-2026-palette-v3';
 
     const HOLIDAYS = new Set(['2026-07-03', '2026-07-04']);
 
@@ -370,41 +375,46 @@
       Blog:     { icon: 'blog',     bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
     };
 
-    const DEFAULT_BLOG_ITEMS = [
-      { id: 'blog-seo', label: 'SEO article — blog publish', short: 'SEO article', icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
-      { id: 'blog-expert', label: 'Expert article — post-webinar', short: 'Expert article', icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
-    ];
-
     const DEFAULT_CONTENT_TYPES = [
       // Email
-      { id: 'email-1', label: 'Webinar email #1 — Announcement', short: 'Email #1', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
-      { id: 'email-2', label: 'Webinar email #2 — Speaker focus', short: 'Email #2', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
-      { id: 'email-3', label: 'Webinar email #3 — Adam personal invitation', short: 'Email #3', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
-      { id: 'email-4', label: 'Webinar email #4 — Last chance', short: 'Email #4', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
-      { id: 'email-5', label: 'Webinar email #5 — Recording', short: 'Email #5', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
-      { id: 'newsletter', label: 'Newsletter — July summary', short: 'Newsletter', icon: 'email', group: 'Email', bg: '#ede9fe', text: '#5b21b6', border: '#ddd6fe' },
+      { id: 'email-1',    label: 'Webinar email #1 — Announcement',           short: 'Email #1',    icon: 'email',   group: 'Email',    bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-2',    label: 'Webinar email #2 — Speaker focus',           short: 'Email #2',    icon: 'email',   group: 'Email',    bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-3',    label: 'Webinar email #3 — Adam personal invitation',short: 'Email #3',    icon: 'email',   group: 'Email',    bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-4',    label: 'Webinar email #4 — Last chance',             short: 'Email #4',    icon: 'email',   group: 'Email',    bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-5',    label: 'Webinar email #5 — Recording',               short: 'Email #5',    icon: 'email',   group: 'Email',    bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'newsletter', label: 'Newsletter — July summary',                  short: 'Newsletter',  icon: 'email',   group: 'Email',    bg: '#ede9fe', text: '#5b21b6', border: '#ddd6fe' },
       // Webinar
-      { id: 'webinar', label: 'Webinar — When You Can\'t Afford to Get It Wrong (live)', short: 'Webinar', icon: 'webinar', group: 'Webinar', bg: '#fce7f3', text: '#9d174d', border: '#fbcfe8' },
-      // LinkedIn (posts + event + article — one channel)
-      { id: 'promo-1', label: 'LinkedIn — Promo 1 (post)', short: 'Promo 1', icon: 'post', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'promo-2', label: 'LinkedIn — Promo 2 (post)', short: 'Promo 2', icon: 'post', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'promo-3', label: 'LinkedIn — Promo 3 (post)', short: 'Promo 3', icon: 'post', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-event', label: 'LinkedIn Event', short: 'LNKD Event', icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-article', label: 'LinkedIn article (native)', short: 'LNKD article', icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'webinar',    label: 'Webinar — When You Can\'t Afford to Get It Wrong (live)', short: 'Webinar', icon: 'webinar', group: 'Webinar', bg: '#fce7f3', text: '#9d174d', border: '#fbcfe8' },
+      // LinkedIn
+      { id: 'linkedin-event',           label: 'LinkedIn Event — announcement post',           short: 'LNKD Event',        icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-article',         label: 'LinkedIn article (native)',                    short: 'LNKD article',      icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-speaker-post',    label: 'LinkedIn — Speaker focused post',              short: 'Speaker post',      icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-topic-carousel',  label: 'LinkedIn — Topic based (Carousel/Infographics)', short: 'Carousel/Info',   icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-promote-articles',label: 'LinkedIn — Promote latest 3 articles',         short: 'Promote articles',  icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-last-chance',     label: 'LinkedIn — Last chance (recording)',            short: 'Last chance',       icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
       // Blog
-      ...DEFAULT_BLOG_ITEMS,
+      { id: 'blog-seo',             label: 'SEO article — blog publish',          short: 'SEO article',       icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+      { id: 'blog-webinar-article', label: 'Webinar based article — blog',        short: 'Webinar article',   icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+      { id: 'blog-publish',         label: 'Publish to blog (post-webinar recap)', short: 'Publish to blog',  icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+      { id: 'blog-expert',          label: 'Expert article — post-webinar',        short: 'Expert article',   icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
     ];
 
     const DEFAULT_PLAN = {
-      '2026-07-01': ['email-1'],
-      '2026-07-02': ['linkedin-event'],
-      '2026-07-05': ['blog-seo'],
-      '2026-07-08': ['email-2'],
+      '2026-07-01': ['email-1', 'linkedin-event'],
+      '2026-07-03': ['blog-seo'],
+      '2026-07-06': ['blog-webinar-article'],
+      '2026-07-07': ['linkedin-promote-articles'],
+      '2026-07-08': ['email-2', 'linkedin-speaker-post'],
       '2026-07-09': ['linkedin-article'],
-      '2026-07-15': ['email-3'],
+      '2026-07-14': ['linkedin-promote-articles'],
+      '2026-07-15': ['email-3', 'linkedin-topic-carousel'],
+      '2026-07-20': ['linkedin-promote-articles'],
       '2026-07-21': ['email-4'],
       '2026-07-23': ['webinar'],
-      '2026-07-28': ['email-5'],
+      '2026-07-24': ['email-5'],
+      '2026-07-27': ['linkedin-promote-articles'],
+      '2026-07-28': ['linkedin-last-chance'],
+      '2026-07-29': ['blog-publish'],
       '2026-07-31': ['newsletter'],
     };
 
@@ -437,27 +447,7 @@
       return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     }
 
-    function migratePalette(types) {
-      const migrated = types.map(t => {
-        if (t.group === 'Social media') return { ...t, group: 'LinkedIn' };
-        return t;
-      });
-
-      const ids = new Set(migrated.map(t => t.id));
-      DEFAULT_BLOG_ITEMS.forEach(item => {
-        if (!ids.has(item.id)) migrated.push({ ...item });
-      });
-
-      return migrated;
-    }
-
     function loadPalette() {
-      try {
-        for (const key of [PALETTE_KEY, 'content-calendar-july-2026-palette-v1']) {
-          const raw = localStorage.getItem(key);
-          if (raw) return migratePalette(JSON.parse(raw));
-        }
-      } catch (_) {}
       return JSON.parse(JSON.stringify(DEFAULT_CONTENT_TYPES));
     }
 
@@ -919,6 +909,38 @@
         lines.push(`${d} Jul (${dayNames[dt.getDay()]}) — ${labels}`);
       });
       navigator.clipboard.writeText(lines.join('\n')).then(() => setStatus('Plan copied')).catch(() => prompt('Copy:', lines.join('\n')));
+    });
+
+    document.getElementById('btnDownload').addEventListener('click', () => {
+      const backup = { plan, palette: contentTypes, savedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'content-calendar-july-2026-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus('Backup downloaded');
+    });
+
+    document.getElementById('btnLoad').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const backup = JSON.parse(ev.target.result);
+          if (backup.plan) { plan = backup.plan; savePlan(); }
+          if (backup.palette) { contentTypes = backup.palette; savePalette(); }
+          openEditId = null;
+          renderAll();
+          setStatus('Backup loaded');
+        } catch (_) {
+          alert('Invalid backup file.');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
     });
 
     setupSidebarDrop();
