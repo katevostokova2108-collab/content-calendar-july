@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Calendar — July 2026</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --border: #dfe3e8;
+      --text: #1a1f2e;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --drop: #dbeafe;
+      --weekend: #f9fafb;
+      --holiday: #fee2e2;
+      --danger: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      min-height: 100vh;
+    }
+
+    .main { padding: 24px 28px; overflow: auto; }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    h1 { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; }
+    .subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    button {
+      font: inherit;
+      font-size: 12px;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    button:hover { border-color: #b8c0cc; }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.primary:hover { background: #1d4ed8; }
+    button.danger { color: var(--danger); border-color: #fecaca; }
+    button.danger:hover { background: #fef2f2; }
+    button.icon-btn {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .weekdays span {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .day {
+      min-height: 108px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .day.empty { background: transparent; border-color: transparent; min-height: 0; padding: 0; }
+    .day.weekend { background: var(--weekend); }
+    .day.holiday { background: var(--holiday); }
+    .day.drag-over { border-color: var(--accent); background: var(--drop); }
+
+    .day-num { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; line-height: 1; }
+    .day.holiday .day-num { color: #b91c1c; }
+
+    .day-items { flex: 1; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.2;
+      cursor: grab;
+      border: 1px solid;
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chip:active { cursor: grabbing; }
+    .chip svg { flex-shrink: 0; }
+
+    .sidebar {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sidebar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sidebar h2 {
+      font-size: 13px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .sidebar p.hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .palette-group { margin-bottom: 4px; }
+
+    .palette-group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .palette-group h3 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .btn-add {
+      font-size: 11px;
+      padding: 3px 8px;
+      color: var(--accent);
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
+
+    .btn-add:hover { background: #dbeafe; }
+
+    .palette-items { display: flex; flex-direction: column; gap: 6px; }
+
+    .palette-row { display: flex; flex-direction: column; gap: 0; }
+
+    .palette-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      transition: border-color 0.15s;
+    }
+
+    .palette-item:hover { border-color: #94a3b8; }
+    .palette-item.is-editing { border-color: var(--accent); border-style: solid; background: #f8fafc; }
+
+    .palette-drag {
+      flex: 1;
+      min-width: 0;
+      cursor: grab;
+    }
+
+    .palette-drag:active { cursor: grabbing; }
+
+    .palette-drag .chip {
+      width: 100%;
+      cursor: grab;
+    }
+
+    .palette-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .palette-edit {
+      display: none;
+      padding: 8px 10px 10px;
+      margin-top: -2px;
+      margin-bottom: 4px;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      background: #f8fafc;
+    }
+
+    .palette-edit.open { display: block; }
+
+    .field { margin-bottom: 8px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field label {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .field input[type="text"],
+    .field select {
+      width: 100%;
+      font: inherit;
+      font-size: 12px;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-row input[type="color"] {
+      width: 36px;
+      height: 28px;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      background: var(--surface);
+    }
+
+    .color-preview {
+      flex: 1;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .edit-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .edit-actions button { flex: 1; font-size: 11px; padding: 6px; }
+
+    .status {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 8px 10px;
+      background: var(--bg);
+      border-radius: 6px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { border-left: none; border-top: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="main">
+      <header>
+        <div>
+          <h1>July 2026 — Content Calendar</h1>
+          <p class="subtitle">When You Can't Afford to Get It Wrong · Webinar Jul 23</p>
+        </div>
+        <div class="toolbar">
+          <button id="btnResetPlan">Reset plan</button>
+          <button id="btnResetPalette">Reset palette</button>
+          <button id="btnClear">Clear calendar</button>
+          <button id="btnExport" class="primary">Copy plan</button>
+        </div>
+      </header>
+
+      <div class="weekdays">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span>
+        <span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+      <div>
+        <div class="sidebar-head">
+          <h2>Content palette</h2>
+        </div>
+        <p class="hint">Channels: Email · Webinar · LinkedIn · Blog — drag · edit · delete · + add</p>
+      </div>
+      <div id="palette"></div>
+      <p class="status" id="status">Saved automatically in this browser.</p>
+    </aside>
+  </div>
+
+  <script>
+    const YEAR = 2026;
+    const MONTH = 6;
+    const PLAN_KEY = 'content-calendar-july-2026-plan-v3';
+    const PALETTE_KEY = 'content-calendar-july-2026-palette-v2';
+
+    const HOLIDAYS = new Set(['2026-07-03', '2026-07-04']);
+
+    const CHANNEL_ORDER = ['Email', 'Webinar', 'LinkedIn', 'Blog'];
+
+    const GROUP_DEFAULTS = {
+      Email:    { icon: 'email',    bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      Webinar:  { icon: 'webinar',  bg: '#fce7f3', text: '#9d174d', border: '#fbcfe8' },
+      LinkedIn: { icon: 'linkedin', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      Blog:     { icon: 'blog',     bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+    };
+
+    const DEFAULT_BLOG_ITEMS = [
+      { id: 'blog-seo', label: 'SEO article — blog publish', short: 'SEO article', icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+      { id: 'blog-expert', label: 'Expert article — post-webinar', short: 'Expert article', icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+    ];
+
+    const DEFAULT_CONTENT_TYPES = [
+      // Email
+      { id: 'email-1', label: 'Webinar email #1 — Announcement', short: 'Email #1', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-2', label: 'Webinar email #2 — Speaker focus', short: 'Email #2', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-3', label: 'Webinar email #3 — Adam personal invitation', short: 'Email #3', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-4', label: 'Webinar email #4 — Last chance', short: 'Email #4', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'email-5', label: 'Webinar email #5 — Recording', short: 'Email #5', icon: 'email', group: 'Email', bg: '#dbeafe', text: '#1e40af', border: '#bfdbfe' },
+      { id: 'newsletter', label: 'Newsletter — July summary', short: 'Newsletter', icon: 'email', group: 'Email', bg: '#ede9fe', text: '#5b21b6', border: '#ddd6fe' },
+      // Webinar
+      { id: 'webinar', label: 'Webinar — When You Can\'t Afford to Get It Wrong (live)', short: 'Webinar', icon: 'webinar', group: 'Webinar', bg: '#fce7f3', text: '#9d174d', border: '#fbcfe8' },
+      // LinkedIn (posts + event + article — one channel)
+      { id: 'promo-1', label: 'LinkedIn — Promo 1 (post)', short: 'Promo 1', icon: 'post', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'promo-2', label: 'LinkedIn — Promo 2 (post)', short: 'Promo 2', icon: 'post', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'promo-3', label: 'LinkedIn — Promo 3 (post)', short: 'Promo 3', icon: 'post', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-event', label: 'LinkedIn Event', short: 'LNKD Event', icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-article', label: 'LinkedIn article (native)', short: 'LNKD article', icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      // Blog
+      ...DEFAULT_BLOG_ITEMS,
+    ];
+
+    const DEFAULT_PLAN = {
+      '2026-07-01': ['email-1'],
+      '2026-07-02': ['linkedin-event'],
+      '2026-07-05': ['blog-seo'],
+      '2026-07-08': ['email-2'],
+      '2026-07-09': ['linkedin-article'],
+      '2026-07-15': ['email-3'],
+      '2026-07-21': ['email-4'],
+      '2026-07-23': ['webinar'],
+      '2026-07-28': ['email-5'],
+      '2026-07-31': ['newsletter'],
+    };
+
+    const REMOVED_IDS = new Set([
+      'email-adam', 'webinar-rec', 'promo-last', 'promo-speaker',
+      'linkedin-post', 'linkedin-carousel', 'linkedin-myth',
+      'seo-promo', 'expert-promo',
+    ]);
+
+    const ID_MIGRATION = {
+      'email-adam': 'email-3',
+      'webinar-rec': 'email-5',
+      'promo-last': 'email-4',
+      'seo-article': 'blog-seo',
+      'expert-article': 'blog-expert',
+    };
+
+    let contentTypes = loadPalette();
+    let plan = loadPlan();
+    let dragPayload = null;
+    let openEditId = null;
+
+    function rebuildTypeMap() {
+      return Object.fromEntries(contentTypes.map(t => [t.id, t]));
+    }
+
+    let TYPE_MAP = rebuildTypeMap();
+
+    function dateKey(y, m, d) {
+      return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+
+    function migratePalette(types) {
+      const migrated = types.map(t => {
+        if (t.group === 'Social media') return { ...t, group: 'LinkedIn' };
+        return t;
+      });
+
+      const ids = new Set(migrated.map(t => t.id));
+      DEFAULT_BLOG_ITEMS.forEach(item => {
+        if (!ids.has(item.id)) migrated.push({ ...item });
+      });
+
+      return migrated;
+    }
+
+    function loadPalette() {
+      try {
+        for (const key of [PALETTE_KEY, 'content-calendar-july-2026-palette-v1']) {
+          const raw = localStorage.getItem(key);
+          if (raw) return migratePalette(JSON.parse(raw));
+        }
+      } catch (_) {}
+      return JSON.parse(JSON.stringify(DEFAULT_CONTENT_TYPES));
+    }
+
+    function savePalette() {
+      localStorage.setItem(PALETTE_KEY, JSON.stringify(contentTypes));
+      TYPE_MAP = rebuildTypeMap();
+      setStatus('Palette saved');
+    }
+
+    function migratePlan(raw) {
+      TYPE_MAP = rebuildTypeMap();
+      const next = {};
+      Object.entries(raw).forEach(([date, ids]) => {
+        const mapped = [];
+        ids.forEach(id => {
+          if (REMOVED_IDS.has(id) && !ID_MIGRATION[id]) return;
+          const newId = ID_MIGRATION[id] || id;
+          if (TYPE_MAP[newId] && !mapped.includes(newId)) mapped.push(newId);
+        });
+        if (mapped.length) next[date] = mapped;
+      });
+      return next;
+    }
+
+    function loadPlan() {
+      try {
+        const keys = [PLAN_KEY, 'content-calendar-july-2026-v2', 'content-calendar-july-2026-v1'];
+        for (const key of keys) {
+          const raw = localStorage.getItem(key);
+          if (raw) return migratePlan(JSON.parse(raw));
+        }
+      } catch (_) {}
+      return JSON.parse(JSON.stringify(DEFAULT_PLAN));
+    }
+
+    function savePlan() {
+      localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
+      setStatus('Plan saved');
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg + ' · ' + new Date().toLocaleTimeString();
+    }
+
+    function hexLuminance(hex) {
+      const h = hex.replace('#', '');
+      const r = parseInt(h.slice(0, 2), 16) / 255;
+      const g = parseInt(h.slice(2, 4), 16) / 255;
+      const b = parseInt(h.slice(4, 6), 16) / 255;
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    function deriveColorsFromBg(bg) {
+      const lum = hexLuminance(bg);
+      const text = lum > 0.55 ? '#1a1f2e' : '#ffffff';
+      const border = lum > 0.55 ? bg : bg;
+      return { bg, text, border };
+    }
+
+    function applyChipStyle(el, type) {
+      el.style.background = type.bg;
+      el.style.color = type.text;
+      el.style.borderColor = type.border;
+    }
+
+    function iconSvg(iconKey) {
+      const paths = {
+        email: '<path d="M2 4h12v8H2z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2 4l6 5 6-5" fill="none" stroke="currentColor" stroke-width="1.4"/>',
+        webinar: '<rect x="2" y="4" width="9" height="7" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M11 6.5l3-1.5v7l-3-1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>',
+        post: '<rect x="2.5" y="3" width="11" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 6.5h6M5 9h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
+        linkedin: '<rect x="3" y="3" width="10" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5 7v6M5 5.2v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 13V9.5c0-1 .8-1.5 1.5-1.5s1.5.6 1.5 1.7V13" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+        blog: '<path d="M4 3h6l3 3v8H4z" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M10 3v3h3M6 8h5M6 10.5h4" stroke="currentColor" stroke-width="1.2"/>',
+      };
+      return `<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">${paths[iconKey] || paths.post}</svg>`;
+    }
+
+    function makeChip(typeId, options = {}) {
+      const type = TYPE_MAP[typeId];
+      if (!type) return null;
+
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.draggable = options.draggable !== false;
+      chip.dataset.typeId = typeId;
+      chip.title = type.label;
+      chip.innerHTML = `${iconSvg(type.icon)}<span>${type.short}</span>`;
+      applyChipStyle(chip, type);
+
+      if (chip.draggable) {
+        chip.addEventListener('dragstart', e => {
+          dragPayload = { typeId, fromDate: options.fromDate || null, fromPalette: !!options.fromPalette };
+          e.dataTransfer.setData('text/plain', typeId);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        chip.addEventListener('dragend', () => {
+          dragPayload = null;
+          document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        });
+      }
+
+      return chip;
+    }
+
+    function removeTypeFromPlan(typeId) {
+      Object.keys(plan).forEach(date => {
+        plan[date] = plan[date].filter(id => id !== typeId);
+        if (plan[date].length === 0) delete plan[date];
+      });
+    }
+
+    function deleteContentType(typeId) {
+      const onCalendar = Object.values(plan).some(ids => ids.includes(typeId));
+      const type = TYPE_MAP[typeId];
+      const msg = onCalendar
+        ? `"${type?.short || typeId}" is on the calendar. Delete it from palette and calendar?`
+        : `Delete "${type?.short || typeId}" from palette?`;
+      if (!confirm(msg)) return;
+
+      contentTypes = contentTypes.filter(t => t.id !== typeId);
+      removeTypeFromPlan(typeId);
+      if (openEditId === typeId) openEditId = null;
+      savePalette();
+      savePlan();
+      renderAll();
+    }
+
+    function addContentType(group) {
+      const defaults = GROUP_DEFAULTS[group] || GROUP_DEFAULTS.Email;
+      const id = 'item-' + Date.now();
+      const count = contentTypes.filter(t => t.group === group).length + 1;
+      contentTypes.push({
+        id,
+        label: `New ${group} item ${count}`,
+        short: `New ${count}`,
+        icon: defaults.icon,
+        group,
+        bg: defaults.bg,
+        text: defaults.text,
+        border: defaults.border,
+      });
+      savePalette();
+      openEditId = id;
+      renderAll();
+    }
+
+    function saveTypeEdits(typeId, data) {
+      const idx = contentTypes.findIndex(t => t.id === typeId);
+      if (idx === -1) return;
+
+      const colors = deriveColorsFromBg(data.bg);
+      contentTypes[idx] = {
+        ...contentTypes[idx],
+        short: data.short.trim() || 'Untitled',
+        label: data.label.trim() || data.short.trim() || 'Untitled',
+        icon: data.icon,
+        bg: data.bg,
+        text: colors.text,
+        border: data.border || data.bg,
+      };
+
+      savePalette();
+      openEditId = null;
+      renderAll();
+    }
+
+    function buildEditPanel(type) {
+      const panel = document.createElement('div');
+      panel.className = 'palette-edit' + (openEditId === type.id ? ' open' : '');
+
+      panel.innerHTML = `
+        <div class="field">
+          <label>Chip label (on calendar)</label>
+          <input type="text" class="inp-short" value="${esc(type.short)}" />
+        </div>
+        <div class="field">
+          <label>Tooltip (on hover)</label>
+          <input type="text" class="inp-label" value="${esc(type.label)}" />
+        </div>
+        <div class="field">
+          <label>Icon</label>
+          <select class="inp-icon">
+            <option value="email" ${type.icon === 'email' ? 'selected' : ''}>Email</option>
+            <option value="webinar" ${type.icon === 'webinar' ? 'selected' : ''}>Webinar</option>
+            <option value="post" ${type.icon === 'post' ? 'selected' : ''}>Post</option>
+            <option value="linkedin" ${type.icon === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
+            <option value="blog" ${type.icon === 'blog' ? 'selected' : ''}>Blog</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Color</label>
+          <div class="color-row">
+            <input type="color" class="inp-color" value="${type.bg}" />
+            <span class="color-preview">Background · text auto-adjusts</span>
+          </div>
+        </div>
+        <div class="edit-actions">
+          <button type="button" class="btn-save primary">Save</button>
+          <button type="button" class="btn-cancel">Cancel</button>
+        </div>
+      `;
+
+      const previewChip = () => {
+        const bg = panel.querySelector('.inp-color').value;
+        const colors = deriveColorsFromBg(bg);
+        const row = panel.closest('.palette-row');
+        const chip = row?.querySelector('.chip');
+        if (chip) {
+          chip.querySelector('span').textContent = panel.querySelector('.inp-short').value || type.short;
+          chip.style.background = colors.bg;
+          chip.style.color = colors.text;
+          chip.style.borderColor = colors.border;
+        }
+      };
+
+      panel.querySelector('.inp-short').addEventListener('input', previewChip);
+      panel.querySelector('.inp-color').addEventListener('input', previewChip);
+
+      panel.querySelector('.btn-save').addEventListener('click', () => {
+        saveTypeEdits(type.id, {
+          short: panel.querySelector('.inp-short').value,
+          label: panel.querySelector('.inp-label').value,
+          icon: panel.querySelector('.inp-icon').value,
+          bg: panel.querySelector('.inp-color').value,
+          border: panel.querySelector('.inp-color').value,
+        });
+      });
+
+      panel.querySelector('.btn-cancel').addEventListener('click', () => {
+        openEditId = null;
+        renderPalette();
+      });
+
+      return panel;
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    }
+
+    function renderCalendar() {
+      TYPE_MAP = rebuildTypeMap();
+      const cal = document.getElementById('calendar');
+      cal.innerHTML = '';
+
+      const firstDay = new Date(YEAR, MONTH, 1);
+      const daysInMonth = new Date(YEAR, MONTH + 1, 0).getDate();
+      let startPad = firstDay.getDay() - 1;
+      if (startPad < 0) startPad = 6;
+
+      for (let i = 0; i < startPad; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'day empty';
+        cal.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = dateKey(YEAR, MONTH, d);
+        const dow = new Date(YEAR, MONTH, d).getDay();
+        const isWeekend = dow === 0 || dow === 6;
+
+        const cell = document.createElement('div');
+        cell.className = 'day' + (isWeekend ? ' weekend' : '') + (HOLIDAYS.has(key) ? ' holiday' : '');
+
+        const num = document.createElement('div');
+        num.className = 'day-num';
+        num.textContent = d + (HOLIDAYS.has(key) ? ' · holiday' : '');
+        cell.appendChild(num);
+
+        const items = document.createElement('div');
+        items.className = 'day-items';
+        (plan[key] || []).forEach(typeId => {
+          const chip = makeChip(typeId, { fromDate: key });
+          if (chip) items.appendChild(chip);
+          else {
+            const orphan = document.createElement('div');
+            orphan.className = 'chip';
+            orphan.style.background = '#fee2e2';
+            orphan.style.color = '#991b1b';
+            orphan.style.borderColor = '#fecaca';
+            orphan.textContent = '? ' + typeId;
+            orphan.title = 'Unknown type — removed from palette';
+            items.appendChild(orphan);
+          }
+        });
+        cell.appendChild(items);
+
+        cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); });
+        cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+        cell.addEventListener('drop', e => { e.preventDefault(); cell.classList.remove('drag-over'); handleDrop(key); });
+
+        cal.appendChild(cell);
+      }
+    }
+
+    function renderPalette() {
+      TYPE_MAP = rebuildTypeMap();
+      const palette = document.getElementById('palette');
+      palette.innerHTML = '';
+
+      const knownGroups = CHANNEL_ORDER.filter(g => contentTypes.some(t => t.group === g));
+      const extraGroups = [...new Set(contentTypes.map(t => t.group))].filter(g => !CHANNEL_ORDER.includes(g));
+      const groups = [...knownGroups, ...extraGroups];
+
+      groups.forEach(group => {
+        const section = document.createElement('div');
+        section.className = 'palette-group';
+
+        const head = document.createElement('div');
+        head.className = 'palette-group-head';
+        head.innerHTML = `<h3>${esc(group)}</h3>`;
+
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'btn-add';
+        addBtn.textContent = '+ Add';
+        addBtn.addEventListener('click', () => addContentType(group));
+        head.appendChild(addBtn);
+        section.appendChild(head);
+
+        const list = document.createElement('div');
+        list.className = 'palette-items';
+
+        contentTypes.filter(t => t.group === group).forEach(type => {
+          const rowWrap = document.createElement('div');
+          rowWrap.className = 'palette-row';
+
+          const item = document.createElement('div');
+          item.className = 'palette-item' + (openEditId === type.id ? ' is-editing' : '');
+
+          const dragZone = document.createElement('div');
+          dragZone.className = 'palette-drag';
+          dragZone.draggable = true;
+
+          dragZone.addEventListener('dragstart', e => {
+            if (openEditId) { e.preventDefault(); return; }
+            dragPayload = { typeId: type.id, fromDate: null, fromPalette: true };
+            e.dataTransfer.setData('text/plain', type.id);
+            e.dataTransfer.effectAllowed = 'copy';
+          });
+          dragZone.addEventListener('dragend', () => {
+            dragPayload = null;
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+          });
+
+          const chip = makeChip(type.id, { fromPalette: true, draggable: false });
+          dragZone.appendChild(chip);
+
+          const actions = document.createElement('div');
+          actions.className = 'palette-actions';
+
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.className = 'icon-btn';
+          editBtn.title = 'Edit';
+          editBtn.textContent = '\u270E';
+          editBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            openEditId = openEditId === type.id ? null : type.id;
+            renderPalette();
+          });
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'icon-btn danger';
+          delBtn.title = 'Delete';
+          delBtn.textContent = '\u00D7';
+          delBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            deleteContentType(type.id);
+          });
+
+          actions.append(editBtn, delBtn);
+          item.append(dragZone, actions);
+          rowWrap.appendChild(item);
+          rowWrap.appendChild(buildEditPanel(type));
+          list.appendChild(rowWrap);
+        });
+
+        section.appendChild(list);
+        palette.appendChild(section);
+      });
+    }
+
+    function handleDrop(targetDate) {
+      if (!dragPayload) return;
+      const { typeId, fromDate } = dragPayload;
+      if (fromDate === targetDate) return;
+
+      if (fromDate && plan[fromDate]) {
+        plan[fromDate] = plan[fromDate].filter(id => id !== typeId);
+        if (plan[fromDate].length === 0) delete plan[fromDate];
+      }
+
+      if (!plan[targetDate]) plan[targetDate] = [];
+      if (!plan[targetDate].includes(typeId)) plan[targetDate].push(typeId);
+
+      savePlan();
+      renderCalendar();
+      dragPayload = null;
+    }
+
+    function setupSidebarDrop() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.addEventListener('dragover', e => {
+        if (dragPayload?.fromDate) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+      });
+      sidebar.addEventListener('drop', e => {
+        if (!dragPayload?.fromDate) return;
+        e.preventDefault();
+        const { typeId, fromDate } = dragPayload;
+        if (plan[fromDate]) {
+          plan[fromDate] = plan[fromDate].filter(id => id !== typeId);
+          if (plan[fromDate].length === 0) delete plan[fromDate];
+        }
+        savePlan();
+        renderCalendar();
+        dragPayload = null;
+      });
+    }
+
+    function renderAll() {
+      renderPalette();
+      renderCalendar();
+    }
+
+    document.getElementById('btnResetPlan').addEventListener('click', () => {
+      if (confirm('Reset calendar to default July plan?')) {
+        plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
+        savePlan();
+        renderCalendar();
+      }
+    });
+
+    document.getElementById('btnResetPalette').addEventListener('click', () => {
+      if (confirm('Reset palette to defaults? Your custom items and edits will be lost.')) {
+        contentTypes = JSON.parse(JSON.stringify(DEFAULT_CONTENT_TYPES));
+        openEditId = null;
+        savePalette();
+        renderAll();
+      }
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      if (confirm('Clear all items from the calendar?')) {
+        plan = {};
+        savePlan();
+        renderCalendar();
+      }
+    });
+
+    document.getElementById('btnExport').addEventListener('click', () => {
+      TYPE_MAP = rebuildTypeMap();
+      const lines = ['July 2026 Content Plan', ''];
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      Object.keys(plan).sort().forEach(key => {
+        const [y, m, d] = key.split('-').map(Number);
+        const dt = new Date(y, m - 1, d);
+        const labels = plan[key].map(id => TYPE_MAP[id]?.label || id).join(' · ');
+        lines.push(`${d} Jul (${dayNames[dt.getDay()]}) — ${labels}`);
+      });
+      navigator.clipboard.writeText(lines.join('\n')).then(() => setStatus('Plan copied')).catch(() => prompt('Copy:', lines.join('\n')));
+    });
+
+    setupSidebarDrop();
+    renderAll();
+  </script>
+</body>
+</html>
