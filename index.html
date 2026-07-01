@@ -361,8 +361,8 @@
   <script>
     const YEAR = 2026;
     const MONTH = 6;
-    const PLAN_KEY = 'content-calendar-july-2026-plan-v6';
-    const PALETTE_KEY = 'content-calendar-july-2026-palette-v3';
+    const PLAN_KEY = 'content-calendar-july-2026-plan-v7';
+    const PALETTE_KEY = 'content-calendar-july-2026-palette-v4';
 
     const HOLIDAYS = new Set(['2026-07-03', '2026-07-04']);
 
@@ -385,13 +385,16 @@
       { id: 'newsletter', label: 'Newsletter — July summary',                  short: 'Newsletter',  icon: 'email',   group: 'Email',    bg: '#ede9fe', text: '#5b21b6', border: '#ddd6fe' },
       // Webinar
       { id: 'webinar',    label: 'Webinar — When You Can\'t Afford to Get It Wrong (live)', short: 'Webinar', icon: 'webinar', group: 'Webinar', bg: '#fce7f3', text: '#9d174d', border: '#fbcfe8' },
-      // LinkedIn
-      { id: 'linkedin-event',           label: 'LinkedIn Event — announcement post',           short: 'LNKD Event',        icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-article',         label: 'LinkedIn article (native)',                    short: 'LNKD article',      icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-speaker-post',    label: 'LinkedIn — Speaker focused post',              short: 'Speaker post',      icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-topic-carousel',  label: 'LinkedIn — Topic based (Carousel/Infographics)', short: 'Carousel/Info',   icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-promote-articles',label: 'LinkedIn — Promote latest 3 articles',         short: 'Promote articles',  icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
-      { id: 'linkedin-last-chance',     label: 'LinkedIn — Last chance (recording)',            short: 'Last chance',       icon: 'post',     group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      // LinkedIn — base
+      { id: 'linkedin-event',    label: 'LinkedIn Event — announcement post', short: 'LNKD Event',    icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      { id: 'linkedin-article',  label: 'LinkedIn article (native)',           short: 'LNKD article',  icon: 'linkedin', group: 'LinkedIn', bg: '#e0e7ff', text: '#3730a3', border: '#c7d2fe' },
+      // LinkedIn — webinar promo posts (yellow)
+      { id: 'linkedin-wpost-1',  label: 'LinkedIn — Webinar post 1 (Announcement)',           short: 'W-LNKD post 1', icon: 'post', group: 'LinkedIn', bg: '#fef08a', text: '#713f12', border: '#fde047' },
+      { id: 'linkedin-wpost-2',  label: 'LinkedIn — Webinar post 2 (Speaker focused)',        short: 'W-LNKD post 2', icon: 'post', group: 'LinkedIn', bg: '#fef08a', text: '#713f12', border: '#fde047' },
+      { id: 'linkedin-wpost-3',  label: 'LinkedIn — Webinar post 3 (Carousel/Infographics)',  short: 'W-LNKD post 3', icon: 'post', group: 'LinkedIn', bg: '#fef08a', text: '#713f12', border: '#fde047' },
+      { id: 'linkedin-wpost-4',  label: 'LinkedIn — Webinar post 4 (Last chance)',            short: 'W-LNKD post 4', icon: 'post', group: 'LinkedIn', bg: '#fef08a', text: '#713f12', border: '#fde047' },
+      // LinkedIn — evergreen (beige)
+      { id: 'linkedin-evergreen', label: 'LinkedIn — Evergreen post (promote latest articles)', short: 'LNKD Evergreen', icon: 'post', group: 'LinkedIn', bg: '#fefce8', text: '#a16207', border: '#fef08a' },
       // Blog
       { id: 'blog-seo',             label: 'SEO article — blog publish',          short: 'SEO article',       icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
       { id: 'blog-webinar-article', label: 'Webinar based article — blog',        short: 'Webinar article',   icon: 'blog', group: 'Blog', bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
@@ -400,21 +403,21 @@
     ];
 
     const DEFAULT_PLAN = {
-      '2026-07-02': ['email-1', 'linkedin-event'],
+      '2026-07-02': ['email-1', 'linkedin-event', 'linkedin-wpost-1'],
       '2026-07-03': ['blog-seo'],
-      '2026-07-06': ['blog-webinar-article'],
-      '2026-07-07': ['linkedin-promote-articles'],
-      '2026-07-08': ['email-2', 'linkedin-speaker-post'],
+      '2026-07-06': ['linkedin-article'],
+      '2026-07-07': ['linkedin-evergreen'],
+      '2026-07-08': ['email-2', 'linkedin-wpost-2'],
       '2026-07-09': ['linkedin-article'],
-      '2026-07-14': ['linkedin-promote-articles'],
-      '2026-07-15': ['email-3', 'linkedin-topic-carousel'],
-      '2026-07-20': ['linkedin-promote-articles'],
+      '2026-07-14': ['linkedin-evergreen'],
+      '2026-07-15': ['email-3', 'linkedin-wpost-3'],
+      '2026-07-20': ['linkedin-evergreen'],
       '2026-07-21': ['email-4'],
       '2026-07-23': ['webinar'],
       '2026-07-24': ['email-5'],
-      '2026-07-27': ['linkedin-promote-articles'],
-      '2026-07-28': ['linkedin-last-chance'],
-      '2026-07-29': ['blog-publish'],
+      '2026-07-27': ['linkedin-evergreen'],
+      '2026-07-28': ['linkedin-wpost-4'],
+      '2026-07-29': ['blog-webinar-article'],
       '2026-07-31': ['newsletter'],
     };
 
